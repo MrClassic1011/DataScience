@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Game</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; line-height: 1.6; max-width: 800px; margin: auto; padding: 20px; }
+        .question { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #3498db; }
+        .correct { color: green; font-weight: bold; }
+        .wrong { color: red; font-weight: bold; }
+        button { padding: 10px 20px; font-size: 16px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #2980b9; }
+        .home-btn { background-color: #7f8c8d; text-decoration: none; padding: 10px 20px; color: white; border-radius: 5px; display: inline-block; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Quiz Game</h1>
+
+    <form id="quizForm">
+        {% for q in questions %}
+            {# We store the outer loop index in a variable #}
+            {% set q_idx = loop.index0 %}
+            <div class="question">
+                <p><strong>Q{{ loop.index }}:</strong> {{ q['question'] }}</p>
+                {% for opt in q['options'] %}
+                    <label>
+                        <input type="radio" name="q{{ q_idx }}" value="{{ loop.index0 }}"> 
+                        {{ opt }}
+                    </label><br>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <button type="button" onclick="submitQuiz()">Submit Answers</button>
+    </form>
+
+    <div id="result" style="margin-top:30px;"></div>
+    <a href="/" class="home-btn">Try New Quiz</a>
+
+    <script>
+        // Injecting the questions list into JavaScript
+        const questions = {{ questions|tojson }};
+
+        function submitQuiz() {
+            let score = 0;
+            let resultHTML = "<h3>Detailed Results:</h3>";
+
+            questions.forEach((q, idx) => {
+                const radios = document.getElementsByName('q' + idx);
+                let selected = -1;
+
+                radios.forEach(r => {
+                    if (r.checked) selected = parseInt(r.value);
+                });
+
+                if (selected === q.correct) {
+                    score++;
+                    resultHTML += `<p>Q${idx+1}: <span class="correct">Correct!</span></p>`;
+                } else {
+                    let correctText = q.options[q.correct];
+                    resultHTML += `<p>Q${idx+1}: <span class="wrong">Wrong!</span> (Correct: <strong>${correctText}</strong>)</p>`;
+                }
+            });
+
+            const finalScoreHTML = `<h2>Your Final Score: ${score} / ${questions.length}</h2>`;
+            document.getElementById("result").innerHTML = finalScoreHTML + resultHTML;
+            
+            // Scroll to results
+            document.getElementById("result").scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
